@@ -11,13 +11,13 @@
     <EditText
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/editText"
+        android:id="@+id/username"
         android:hint="Enter Username"/>
 
     <EditText
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/editPassword"
+        android:id="@+id/password"
         android:inputType="textPassword"
         android:hint="Enter Password"/>
 
@@ -45,5 +45,11 @@
         android:id="@+id/button"
         android:layout_gravity="center_horizontal"
         android:onClick="registerClick"/>
+
+    <ProgressBar
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/loginProgress"
+        android:layout_gravity="center_horizontal" />
 
 </LinearLayout>

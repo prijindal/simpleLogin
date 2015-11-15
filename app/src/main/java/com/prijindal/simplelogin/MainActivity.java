@@ -43,12 +43,11 @@ public class MainActivity extends ListActivity {
         mUsersJson = null;
         if(isNetworkAvailable()) {
             // TODO: Show some Kind of info showing that person is logging in
-            if (isLoggedIn()) {
+            if (User.getInstance().isLoggedIn()) {
                 mProgressBar.setVisibility(View.VISIBLE);
                 new GetUsersTask().execute();
             } else {
-                Intent loginActivity = new Intent(this, LoginActivity.class);
-                startActivity(loginActivity);
+                goToLogin();
             }
         }
         else {
@@ -58,27 +57,28 @@ public class MainActivity extends ListActivity {
 
     @Override
     protected void onResume() {
-        super.onResume();
-        // TODO: if Token available
-        if(isLoggedIn()) {
-            // Continue
+        if(User.getInstance().isTokenAvailable()) {
+            super.onResume();
         }
         else {
-            Intent loginActivity = new Intent(this, LoginActivity.class);
-            startActivity(loginActivity);
+            super.onDestroy();
+            goToLogin();
         }
     }
 
     @Override
     protected void onStop() {
-        super.onPause();
+        super.onStop();
         mProgressBar.setVisibility(View.INVISIBLE);
     }
 
-    public boolean isLoggedIn() {
-        // TODO: Check if user is logged in or not
-        // TODO: Check for invalid token and logout
-        return false;
+    protected void goToLogin() {
+        Intent loginActivity = new Intent(this, LoginActivity.class);
+        loginActivity.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        loginActivity.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        loginActivity.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        loginActivity.addFlags(Intent.FLAG_ACTIVITY_TASK_ON_HOME);
+        startActivity(loginActivity);
     }
 
     private boolean isNetworkAvailable() {
@@ -131,7 +131,7 @@ public class MainActivity extends ListActivity {
         protected JSONArray doInBackground(Object... objects) {
             JSONArray jsonUsers = null;
             try {
-                URL usersUrl = new URL("http://192.168.1.100:5000/");
+                URL usersUrl = new URL(getString(R.string.base_url) + "/users?token=" + User.getInstance().getToken());
                 HttpURLConnection usersConnection = (HttpURLConnection) usersUrl.openConnection();
                 usersConnection.connect();
 
