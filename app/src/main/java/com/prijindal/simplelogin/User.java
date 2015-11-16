@@ -1,9 +1,24 @@
 package com.prijindal.simplelogin;
+
+import android.util.Log;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+
 /**
  * Created by Priyanshu on 11/14/15.
  */
 public class User {
-    private String TAG = "UserSingleton";
+    private static String TAG = "UserSingleton";
     private static User ourInstance = null;
 
     private int id;
@@ -38,5 +53,93 @@ public class User {
 
         // TODO: Fetch from data
         return token;
+    }
+
+    public static Integer register(String url, String username, String email, String password) {
+        Integer responseCode = -1;
+        try {
+            URL loginUrl = new URL(url);
+            HttpURLConnection loginConnection = (HttpURLConnection) loginUrl.openConnection();
+
+            loginConnection.setRequestProperty("X-HTTP-Method-Override", "POST");
+            loginConnection.setRequestMethod("POST");
+            loginConnection.setRequestProperty("Content-Type", "application/json");
+            loginConnection.setUseCaches(false);
+            loginConnection.setDoInput(true);
+            loginConnection.setDoOutput(true);
+            loginConnection.connect();
+
+            JSONObject requestJson = new JSONObject();
+            requestJson.put("username", username);
+            requestJson.put("email", email);
+            requestJson.put("password", password);
+
+            DataOutputStream printout = new DataOutputStream(loginConnection.getOutputStream());
+            printout.writeBytes(requestJson.toString());
+            printout.flush();
+            printout.close();
+
+            responseCode = loginConnection.getResponseCode();
+            Log.v(TAG, "Response Code: " + responseCode);
+            if(responseCode == HttpURLConnection.HTTP_OK) {
+                responseCode = User.login(url, username, password);
+            }
+        } catch (MalformedURLException e) {
+            Log.e(TAG, "Exception Caught: ", e);
+        } catch (IOException e) {
+            Log.e(TAG, "Exception Caught: ", e);
+        } catch (JSONException e) {
+            Log.e(TAG, "Exception Caught: ", e);
+        }
+        return responseCode;
+    }
+
+    // Accepts username and password
+    // Returns response Code for the request
+    public static Integer login(String url, String username, String password) {
+        Integer responseCode = -1;
+        try {
+            URL loginUrl = new URL(url);
+            HttpURLConnection loginConnection = (HttpURLConnection) loginUrl.openConnection();
+
+            loginConnection.setRequestProperty("X-HTTP-Method-Override", "PATCH");
+            loginConnection.setRequestMethod("POST");
+            loginConnection.setRequestProperty("Content-Type", "application/json");
+            loginConnection.setUseCaches(false);
+            loginConnection.setDoInput(true);
+            loginConnection.setDoOutput(true);
+            loginConnection.connect();
+
+            JSONObject requestJson = new JSONObject();
+            requestJson.put("username", username);
+            requestJson.put("password", password);
+
+            DataOutputStream printout = new DataOutputStream(loginConnection.getOutputStream());
+            printout.writeBytes(requestJson.toString());
+            printout.flush();
+            printout.close();
+
+            responseCode = loginConnection.getResponseCode();
+            Log.v(TAG, "Response Code: " + responseCode);
+            if(responseCode == HttpURLConnection.HTTP_OK) {
+                InputStream usersStream = loginConnection.getInputStream();
+                Reader reader = new InputStreamReader(usersStream);
+                char[] charArray = new char[loginConnection.getContentLength()];
+                reader.read(charArray);
+
+                String usersResponse = new String(charArray);
+                Log.v(TAG, usersResponse);
+                JSONObject jsonObject = new JSONObject(usersResponse);
+                String tok = jsonObject.getString("token");
+                User.getInstance().setToken(tok);
+            }
+        } catch (MalformedURLException e) {
+            Log.e(TAG, "Exception Caught: ", e);
+        } catch (IOException e) {
+            Log.e(TAG, "Exception Caught: ", e);
+        } catch (JSONException e) {
+            Log.e(TAG, "Exception Caught: ", e);
+        }
+        return responseCode;
     }
 }
