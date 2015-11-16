@@ -30,6 +30,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class MainActivity extends ListActivity {
+    // TODO: Refactor Code to reuse some components
+    Context self = this;
     String TAG = "Main Activity";
     JSONArray mUsersJson;
     ProgressBar mProgressBar;
@@ -43,7 +45,7 @@ public class MainActivity extends ListActivity {
         mUsersJson = null;
         if(isNetworkAvailable()) {
             // TODO: Show some Kind of info showing that person is logging in
-            if (User.getInstance().isLoggedIn()) {
+            if (User.getInstance().isLoggedIn(this)) {
                 mProgressBar.setVisibility(View.VISIBLE);
                 new GetUsersTask().execute();
             } else {
@@ -57,7 +59,7 @@ public class MainActivity extends ListActivity {
 
     @Override
     protected void onResume() {
-        if(User.getInstance().isTokenAvailable()) {
+        if(User.getInstance().isTokenAvailable(this)) {
             super.onResume();
         }
         else {
@@ -131,7 +133,7 @@ public class MainActivity extends ListActivity {
         protected JSONArray doInBackground(Object... objects) {
             JSONArray jsonUsers = null;
             try {
-                URL usersUrl = new URL(getString(R.string.base_url) + "/users?token=" + User.getInstance().getToken());
+                URL usersUrl = new URL(getString(R.string.base_url) + "/users?token=" + User.getInstance().getToken(self));
                 HttpURLConnection usersConnection = (HttpURLConnection) usersUrl.openConnection();
                 usersConnection.connect();
 

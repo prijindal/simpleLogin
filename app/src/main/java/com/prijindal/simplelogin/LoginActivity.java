@@ -2,7 +2,6 @@ package com.prijindal.simplelogin;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Activity;
@@ -17,16 +16,16 @@ import java.util.HashMap;
 
 
 public class LoginActivity extends Activity {
+    Context self = this;
     protected String TAG = "LoginActivity";
     protected ProgressBar mProgressBar;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         mProgressBar = (ProgressBar) findViewById(R.id.loginProgress);
         mProgressBar.setVisibility(View.INVISIBLE);
-        if(User.getInstance().isTokenAvailable()) {
+        if(User.getInstance().isTokenAvailable(this)) {
             goToMain();
         }
     }
@@ -51,6 +50,7 @@ public class LoginActivity extends Activity {
     }
 
     public void loginClick(View view) {
+        // TODO: Check for Network availability
         InputMethodManager inputManager = (InputMethodManager)
                 getSystemService(Context.INPUT_METHOD_SERVICE);
 
@@ -76,7 +76,7 @@ public class LoginActivity extends Activity {
         @Override
         protected Integer doInBackground(HashMap<String, String>... credentialsArray) {
             HashMap<String, String> credentials = credentialsArray[0];
-            return User.login(getString(R.string.base_url) + "/users", credentials.get("username"), credentials.get("password"));
+            return User.login(self, credentials.get("username"), credentials.get("password"));
         }
 
         @Override
